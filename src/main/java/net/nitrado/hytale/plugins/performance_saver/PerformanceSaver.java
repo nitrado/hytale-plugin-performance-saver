@@ -93,8 +93,11 @@ public class PerformanceSaver extends JavaPlugin {
             var newViewRadius = this.reduceViewRadius(currentViewRadius);
 
             if (newViewRadius != currentViewRadius) {
-                Universe.get().sendMessage(Message.raw("Memory critical. Reducing view radius to " + newViewRadius));
-                getLogger().atSevere().log("Memory critical. Reducing view radius to " + newViewRadius);
+                Universe.get().sendMessage(Message.raw("Memory critical. Reducing view radius to " + newViewRadius + " chunks."));
+                if (currentViewRadius == this.initialViewRadius) {
+                    Universe.get().sendMessage(Message.raw("Memory pressure can be caused by fast exploration and similar activities. View radius will recover over time if memory usage allows."));
+                }
+                getLogger().atSevere().log("Memory critical. Reducing view radius to " + newViewRadius + " chunks.");
             }
         }
 
@@ -102,8 +105,11 @@ public class PerformanceSaver extends JavaPlugin {
             var newViewRadius = this.reduceViewRadius(currentViewRadius);
 
             if (newViewRadius != currentViewRadius) {
-                Universe.get().sendMessage(Message.raw("TPS low. Reducing view radius to " + newViewRadius));
-                getLogger().atSevere().log("TPS low. Reducing view radius to " + newViewRadius);
+                Universe.get().sendMessage(Message.raw("TPS low. Reducing view radius to " + newViewRadius + " chunks."));
+                if (currentViewRadius == this.initialViewRadius) {
+                    Universe.get().sendMessage(Message.raw("Low TPS can be caused by chunk generation and large amounts of active NPCs. View radius will recover when load decreases."));
+                }
+                getLogger().atSevere().log("TPS low. Reducing view radius to " + newViewRadius  + " chunks.");
             }
         }
 
@@ -146,7 +152,6 @@ public class PerformanceSaver extends JavaPlugin {
         var highWaterMark = 0.75 * this.currentTargetTPS;
 
         var tps = this.getTPS(Universe.get().getDefaultWorld());
-        getLogger().atInfo().log("TPS: %.2f", tps);
 
         var now = ManagementFactory.getRuntimeMXBean().getUptime();
 
@@ -315,8 +320,8 @@ public class PerformanceSaver extends JavaPlugin {
         var newViewRadius = Math.min(currentViewRadius + 1, this.initialViewRadius);
 
         if (newViewRadius > currentViewRadius) {
-            Universe.get().sendMessage(Message.raw("Increasing view radius back to " + newViewRadius));
-            getLogger().atInfo().log("Increasing view radius back to " + newViewRadius);
+            Universe.get().sendMessage(Message.raw("Increasing view radius back to " + newViewRadius + " chunks."));
+            getLogger().atInfo().log("Increasing view radius back to " + newViewRadius + " chunks.");
             this.lastAdjustment = ManagementFactory.getRuntimeMXBean().getUptime();
             HytaleServer.get().getConfig().setMaxViewRadius(newViewRadius);
             return newViewRadius;
