@@ -12,6 +12,7 @@ import net.nitrado.hytale.plugins.performance_saver.gc.GcObserver;
 import javax.annotation.Nonnull;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -21,9 +22,19 @@ public class PerformanceSaver extends JavaPlugin {
     private GcObserver observer;
     private ScheduledFuture<?> gcTask;
     private ScheduledFuture<?> chunkTask;
+    private ScheduledFuture<?> saveModeTask;
     private int initialViewRadius;
+
+    private int initialTargetTPS;
+    private int currentTargetTPS;
+
     private long lastAdjustment = 0;
-    private boolean hadChunksLoaded = false;
+    private long hasZeroChunksSince = 0;
+    private boolean hasGcRun = true;
+    private long playerLastSeenAt = 0;
+    private int tpsAboveHighWatermark = 0;
+    private int tpsBelowLowWatermark = 0;
+
     private final Map<String, TickSampleState> tickSamples = new ConcurrentHashMap<>();
 
     enum ViewRadiusResult {
@@ -45,6 +56,9 @@ public class PerformanceSaver extends JavaPlugin {
     @Override
     protected void start() {
         this.initialViewRadius = HytaleServer.get().getConfig().getMaxViewRadius();
+        this.initialTargetTPS = Math.min(20, Universe.get().getDefaultWorld().getTps());
+        this.currentTargetTPS = this.initialTargetTPS;
+        this.playerLastSeenAt = ManagementFactory.getRuntimeMXBean().getUptime();
 
         getLogger().atInfo().log("Initial view radius is %d", this.initialViewRadius);
         try {
@@ -61,6 +75,9 @@ public class PerformanceSaver extends JavaPlugin {
                     5, // Interval
                     TimeUnit.SECONDS
             );
+
+            this.saveModeTask = HytaleServer.SCHEDULED_EXECUTOR.scheduleAtFixedRate(this::checkPerformanceSaveMode,
+                    60, 5, TimeUnit.SECONDS);
         } catch (Exception e) {
             getLogger().atSevere().log("failed starting observer: %s", e.getMessage());
         }
@@ -91,25 +108,29 @@ public class PerformanceSaver extends JavaPlugin {
         }
 
         if (gcViewRadiusResult  == ViewRadiusResult.INCREASE && tpsViewRadiusResult  == ViewRadiusResult.INCREASE) {
-            var newViewRadius = this.increaseViewRadius(currentViewRadius);
+            this.increaseViewRadius(currentViewRadius);
         }
     }
 
     protected void checkChunks() {
+        var thresholdMs = 5 * 60 * 1000;
         var loadedChunks = Universe.get().getDefaultWorld().getChunkStore().getLoadedChunksCount();
 
-        if (loadedChunks == 0) {
-            if (hadChunksLoaded) {
-                getLogger().atInfo().log("No chunks loaded, had chunks before...");
-                this.flushMemory();
-            }
+        if (loadedChunks > 0) {
+            this.hasZeroChunksSince = 0;
+            this.hasGcRun = false;
 
-            hadChunksLoaded = false;
-//            getLogger().atInfo().log("Setting low TPS value ...");
-//            Universe.get().getDefaultWorld().setTps(LOW_TPS);
-//            getLogger().atInfo().log("Setting low TPS value assigned");
-        } else {
-            hadChunksLoaded = true;
+            return;
+        }
+
+        if (this.hasGcRun) {
+            return;
+        }
+
+        var now = ManagementFactory.getRuntimeMXBean().getUptime();
+        if (now - this.hasZeroChunksSince >= thresholdMs) {
+            this.flushMemory();
+            this.hasGcRun = true;
         }
     }
 
@@ -119,10 +140,13 @@ public class PerformanceSaver extends JavaPlugin {
     }
 
     protected ViewRadiusResult viewRadiusBasedOnTps() {
-        var lowWaterMark = 12;
-        var highWaterMark = 15;
+        var subsequentMeasurementsThreshold = 3;
+
+        var lowWaterMark = 0.6 * this.currentTargetTPS;
+        var highWaterMark = 0.75 * this.currentTargetTPS;
 
         var tps = this.getTPS(Universe.get().getDefaultWorld());
+        getLogger().atInfo().log("TPS: %.2f", tps);
 
         var now = ManagementFactory.getRuntimeMXBean().getUptime();
 
@@ -131,11 +155,25 @@ public class PerformanceSaver extends JavaPlugin {
         }
 
         if (tps < lowWaterMark) {
-            return ViewRadiusResult.DECREASE;
+            this.tpsBelowLowWatermark += 1;
+            this.tpsAboveHighWatermark = 0;
+
+            if (this.tpsBelowLowWatermark >= subsequentMeasurementsThreshold) {
+                return ViewRadiusResult.DECREASE;
+            }
+        } else {
+            this.tpsBelowLowWatermark = 0;
         }
 
         if (tps > highWaterMark) {
-            return ViewRadiusResult.INCREASE;
+            this.tpsAboveHighWatermark += 1;
+            this.tpsBelowLowWatermark = 0;
+
+            if (this.tpsAboveHighWatermark >= subsequentMeasurementsThreshold) {
+                return ViewRadiusResult.INCREASE;
+            }
+        } else {
+            this.tpsAboveHighWatermark = 0;
         }
 
         return ViewRadiusResult.KEEP;
@@ -196,7 +234,7 @@ public class PerformanceSaver extends JavaPlugin {
         var now = ManagementFactory.getRuntimeMXBean().getUptime();
         var gcRuns = this.observer.getRecentRuns();
         var totalHeap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-        var threshold = 0.85;
+        var threshold = 0.90;
 
         if (totalHeap < 0) {
             return ViewRadiusResult.KEEP;
@@ -235,6 +273,26 @@ public class PerformanceSaver extends JavaPlugin {
         }
 
         return ViewRadiusResult.KEEP;
+    }
+
+    protected void checkPerformanceSaveMode() {
+        var throttledTPS = 5;
+
+        var now = ManagementFactory.getRuntimeMXBean().getUptime();
+
+        if (Universe.get().getPlayerCount() > 0) {
+            this.playerLastSeenAt = ManagementFactory.getRuntimeMXBean().getUptime();
+        }
+
+        this.currentTargetTPS = now - this.playerLastSeenAt > 5 * 60 * 1000 ? throttledTPS : this.initialTargetTPS;
+
+        var defaultWorld = Universe.get().getDefaultWorld();
+        if (defaultWorld.getTps() != this.currentTargetTPS) {
+            getLogger().atInfo().log("Setting TPS to %d", this.currentTargetTPS);
+            CompletableFuture.runAsync(() -> {
+                defaultWorld.setTps(this.currentTargetTPS);
+            }, defaultWorld);
+        }
     }
 
     protected int reduceViewRadius(int currentViewRadius) {
@@ -281,6 +339,7 @@ public class PerformanceSaver extends JavaPlugin {
 
         this.gcTask.cancel(false);
         this.chunkTask.cancel(false);
+        this.saveModeTask.cancel(false);
     }
 
     private static final class TickSampleState {
