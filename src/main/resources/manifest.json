@@ -10,6 +10,6 @@
     }
   ],
   "Website": "https://www.nitrado.net",
-  "Main": "net.nitrado.hytale.plugins.performance_saver.PerformanceSaver",
+  "Main": "net.nitrado.hytale.plugins.performance_saver.PerformanceSaverPlugin",
   "ServerVersion": "*"
 }
