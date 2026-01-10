@@ -4,7 +4,6 @@ import com.hypixel.hytale.logger.HytaleLogger;
 import net.nitrado.hytale.plugins.performance_saver.config.GcMonitorConfig;
 
 import java.lang.management.ManagementFactory;
-import java.time.temporal.ChronoUnit;
 
 public class GcMonitor implements Monitor {
 
@@ -20,8 +19,9 @@ public class GcMonitor implements Monitor {
     }
 
     @Override
-    public ViewRadiusResult getViewRadiusChange(long lastAdjustmentNanos) {
+    public ViewRadiusResult getViewRadiusChange(long lastAdjustmentDeltaNanos) {
         var now = System.nanoTime();
+        var lastAdjustmentNanos = now - lastAdjustmentDeltaNanos;
         var gcRuns = this.observer.getRecentRuns();
         var totalHeap = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
 
@@ -38,7 +38,7 @@ public class GcMonitor implements Monitor {
                 break;
             }
 
-            if (runAsSystemNano < now - this.config.getWindow().getNano()) {
+            if (runAsSystemNano < now - this.config.getWindow().toNanos()) {
                 this.logger.atFiner().log("breaking because GC too long ago");
                 break;
             }
@@ -59,7 +59,7 @@ public class GcMonitor implements Monitor {
             return ViewRadiusResult.DECREASE;
         }
 
-        if (matches == 0 && now - lastAdjustmentNanos > this.config.getRecoveryWaitTime().getNano()) {
+        if (matches == 0) {
             return ViewRadiusResult.INCREASE;
         }
 

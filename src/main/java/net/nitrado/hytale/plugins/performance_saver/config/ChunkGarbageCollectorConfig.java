@@ -40,6 +40,11 @@ public class ChunkGarbageCollectorConfig {
             ).add()
             .build();
 
+    private static final int MIN_CHUNK_COUNT = 1;
+    private static final double MIN_DROP_RATIO = 0.01;
+    private static final double MAX_DROP_RATIO = 1.00;
+    private static final Duration MIN_DURATION = Duration.ofSeconds(1);
+
     private boolean enabled = true;
     private int minChunkCount = 128;
     private double chunkDropRatioThreshold = 0.8;
@@ -51,23 +56,23 @@ public class ChunkGarbageCollectorConfig {
         return enabled;
     }
 
-    public int  getMinChunkCount() {
-        return minChunkCount;
+    public int getMinChunkCount() {
+        return Math.max(minChunkCount, MIN_CHUNK_COUNT);
     }
 
     public double getChunkDropRatioThreshold() {
-        return chunkDropRatioThreshold;
+        return Math.clamp(chunkDropRatioThreshold, MIN_DROP_RATIO, MAX_DROP_RATIO);
     }
 
     public Duration getGarbageCollectionDelay() {
-        return garbageCollectionDelay;
+        return garbageCollectionDelay.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : garbageCollectionDelay;
     }
 
     public Duration getCheckInterval() {
-        return checkInterval;
+        return checkInterval.compareTo(MIN_DURATION) < 0 ? MIN_DURATION : checkInterval;
     }
 
     public Duration getInitialDelay() {
-        return initialDelay;
+        return initialDelay.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : initialDelay;
     }
 }

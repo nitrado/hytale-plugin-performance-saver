@@ -30,54 +30,44 @@ public class TpsMonitorConfig {
                     config -> config.onlyWorlds
             ).add()
             .append(
-                    new KeyedCodec<>("WindowSeconds", Codec.DURATION_SECONDS),
-                    (config, value) -> config.window = value,
-                    config -> config.window
-            ).add()
-            .append(
                     new KeyedCodec<>("AdjustmentDelaySeconds", Codec.DURATION_SECONDS),
                     (config, value) -> config.adjustmentDelay = value,
                     config -> config.adjustmentDelay
-            ).add()
-            .append(
-                    new KeyedCodec<>("RecoveryWaitTimeSeconds", Codec.DURATION_SECONDS),
-                    (config, value) -> config.recoveryWaitTime = value,
-                    config -> config.recoveryWaitTime
             ).add()
             .build();
 
     public static final String DEFAULT_WORLD = "__DEFAULT";
 
+    private static final double MIN_WATER_MARK = 0.01;
+    private static final double MAX_WATER_MARK = 1.0;
+    private static final Duration MIN_DURATION = Duration.ofSeconds(1);
+
     private boolean enabled = true;
     private double tpsWaterMarkHigh = 0.75;
     private double tpsWaterMarkLow = 0.6;
     private String[] onlyWorlds = new String[0];
-    private Duration window = Duration.ofSeconds(15);
-    private Duration adjustmentDelay = Duration.ofSeconds(30);
-    private Duration recoveryWaitTime = Duration.ofSeconds(60);
+    private Duration adjustmentDelay = Duration.ofSeconds(20);
 
     public boolean isEnabled() {
         return enabled;
     }
 
     public double getTpsWaterMarkHigh() {
-        return tpsWaterMarkHigh;
+        var clampedHigh = Math.clamp(tpsWaterMarkHigh, MIN_WATER_MARK, MAX_WATER_MARK);
+        var clampedLow = Math.clamp(tpsWaterMarkLow, MIN_WATER_MARK, MAX_WATER_MARK);
+        // Ensure high >= low
+        return Math.max(clampedHigh, clampedLow);
     }
 
     public double getTpsWaterMarkLow() {
-        return tpsWaterMarkLow;
-    }
-
-    public Duration getWindow() {
-        return window;
+        var clampedHigh = Math.clamp(tpsWaterMarkHigh, MIN_WATER_MARK, MAX_WATER_MARK);
+        var clampedLow = Math.clamp(tpsWaterMarkLow, MIN_WATER_MARK, MAX_WATER_MARK);
+        // Ensure low <= high
+        return Math.min(clampedLow, clampedHigh);
     }
 
     public Duration getAdjustmentDelay() {
-        return adjustmentDelay;
-    }
-
-    public Duration getRecoveryWaitTime() {
-        return recoveryWaitTime;
+        return adjustmentDelay.compareTo(MIN_DURATION) < 0 ? MIN_DURATION : adjustmentDelay;
     }
 
     public Set<String> getOnlyWorlds() {

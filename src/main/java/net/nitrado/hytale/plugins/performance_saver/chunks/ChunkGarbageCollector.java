@@ -41,7 +41,7 @@ public class ChunkGarbageCollector {
             return false;
         }
 
-        if (now - this.belowThresholdSince < this.config.getGarbageCollectionDelay().getNano()) {
+        if (now - this.belowThresholdSince < this.config.getGarbageCollectionDelay().toNanos()) {
             return false;
         }
 

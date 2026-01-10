@@ -39,6 +39,11 @@ public class ViewRadiusConfig {
                     config -> config.checkInterval
             ).add()
             .append(
+                    new KeyedCodec<>("RecoveryWaitTimeSeconds", Codec.DURATION_SECONDS),
+                    (config, value) -> config.recoveryWaitTime = value,
+                    config -> config.recoveryWaitTime
+            ).add()
+            .append(
                     new KeyedCodec<>("GcMonitor", GcMonitorConfig.CODEC),
                     (config, value) -> config.gcMonitorConfig = value,
                     config -> config.gcMonitorConfig
@@ -50,12 +55,20 @@ public class ViewRadiusConfig {
             ).add()
             .build();
 
+    private static final int MIN_VIEW_RADIUS = 1;
+    private static final int MAX_VIEW_RADIUS = 64;
+    private static final double MIN_DECREASE_FACTOR = 0.1;
+    private static final double MAX_DECREASE_FACTOR = 0.99;
+    private static final int MIN_INCREASE_VALUE = 1;
+    private static final Duration MIN_DURATION = Duration.ofSeconds(1);
+
     private boolean enabled = true;
     private int minViewRadius = 2;
     private double decreaseFactor = 0.75;
     private int increaseValue = 1;
     private Duration initialDelay = Duration.ofSeconds(30);
     private Duration checkInterval = Duration.ofSeconds(5);
+    private Duration recoveryWaitTime = Duration.ofSeconds(60);
     private GcMonitorConfig gcMonitorConfig = new GcMonitorConfig();
     private TpsMonitorConfig tpsMonitorConfig = new TpsMonitorConfig();
 
@@ -64,23 +77,27 @@ public class ViewRadiusConfig {
     }
 
     public int getMinViewRadius() {
-        return minViewRadius;
+        return Math.clamp(minViewRadius, MIN_VIEW_RADIUS, MAX_VIEW_RADIUS);
     }
 
     public double getDecreaseFactor() {
-        return decreaseFactor;
+        return Math.clamp(decreaseFactor, MIN_DECREASE_FACTOR, MAX_DECREASE_FACTOR);
     }
 
     public int getIncreaseValue() {
-        return increaseValue;
+        return Math.max(increaseValue, MIN_INCREASE_VALUE);
     }
 
     public Duration getInitialDelay() {
-        return initialDelay;
+        return initialDelay.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : initialDelay;
     }
 
     public Duration getCheckInterval() {
-        return checkInterval;
+        return checkInterval.compareTo(MIN_DURATION) < 0 ? MIN_DURATION : checkInterval;
+    }
+
+    public Duration getRecoveryWaitTime() {
+        return recoveryWaitTime.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : recoveryWaitTime;
     }
 
     public GcMonitorConfig getGcMonitorConfig() {

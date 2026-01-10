@@ -28,36 +28,31 @@ public class GcMonitorConfig {
                     (config, value) -> config.window = value,
                     config -> config.window
             ).add()
-            .append(
-                    new KeyedCodec<>("RecoveryWaitTimeSeconds", Codec.DURATION_SECONDS),
-                    (config, value) -> config.recoveryWaitTime = value,
-                    config -> config.recoveryWaitTime
-            ).add()
             .build();
+
+    private static final double MIN_HEAP_RATIO = 0.01;
+    private static final double MAX_HEAP_RATIO = 0.99;
+    private static final int MIN_TRIGGER_SEQUENCE = 1;
+    private static final Duration MIN_WINDOW = Duration.ofSeconds(1);
 
     private boolean enabled = true;
     private double heapThresholdRatio = 0.85;
     private int triggerSequenceLength = 3;
     private Duration window = Duration.ofSeconds(60);
-    private Duration recoveryWaitTime = Duration.ofSeconds(60);
 
     public boolean isEnabled() {
         return enabled;
     }
 
     public double getHeapThresholdRatio() {
-        return heapThresholdRatio;
+        return Math.clamp(heapThresholdRatio, MIN_HEAP_RATIO, MAX_HEAP_RATIO);
     }
 
     public int getTriggerSequenceLength() {
-        return triggerSequenceLength;
+        return Math.max(triggerSequenceLength, MIN_TRIGGER_SEQUENCE);
     }
 
     public Duration getWindow() {
-        return window;
-    }
-
-    public Duration getRecoveryWaitTime() {
-        return recoveryWaitTime;
+        return window.compareTo(MIN_WINDOW) < 0 ? MIN_WINDOW : window;
     }
 }

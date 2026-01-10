@@ -3,6 +3,7 @@ package net.nitrado.hytale.plugins.performance_saver.config;
 import com.hypixel.hytale.codec.Codec;
 import com.hypixel.hytale.codec.KeyedCodec;
 import com.hypixel.hytale.codec.builder.BuilderCodec;
+import com.hypixel.hytale.server.core.util.thread.TickingThread;
 
 import java.time.Duration;
 import java.util.Set;
@@ -48,6 +49,10 @@ public class TpsAdjusterConfig {
 
     public static final String DEFAULT_WORLD = "__DEFAULT";
 
+    private static final int MIN_TPS = 1;
+    private static final int MAX_TPS = TickingThread.TPS;
+    private static final Duration MIN_DURATION = Duration.ofSeconds(1);
+
     private boolean enabled = true;
     private int tpsLimit = 20;
     private int tpsLimitEmpty = 5;
@@ -61,11 +66,11 @@ public class TpsAdjusterConfig {
     }
 
     public int getTpsLimit() {
-        return tpsLimit;
+        return Math.clamp(tpsLimit, MIN_TPS, MAX_TPS);
     }
 
     public int getTpsLimitEmpty() {
-        return Math.min(tpsLimit, tpsLimitEmpty);
+        return Math.clamp(Math.min(tpsLimit, tpsLimitEmpty), MIN_TPS, MAX_TPS);
     }
 
     public Set<String> getOnlyWorlds() {
@@ -73,14 +78,14 @@ public class TpsAdjusterConfig {
     }
 
     public Duration getInitialDelay() {
-        return initialDelay;
+        return initialDelay.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : initialDelay;
     }
 
     public Duration getCheckInterval() {
-        return checkInterval;
+        return checkInterval.compareTo(MIN_DURATION) <= 0 ? MIN_DURATION : checkInterval;
     }
 
     public Duration getEmptyLimitDelay() {
-        return emptyLimitDelay;
+        return emptyLimitDelay.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : emptyLimitDelay;
     }
 }

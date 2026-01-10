@@ -5,6 +5,7 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.Universe;
+import com.hypixel.hytale.server.core.universe.world.storage.component.ChunkSavingSystems;
 import com.hypixel.hytale.server.core.util.Config;
 import net.nitrado.hytale.plugins.performance_saver.chunks.ChunkGarbageCollector;
 import net.nitrado.hytale.plugins.performance_saver.config.PerformanceSaverPluginConfig;
@@ -13,6 +14,7 @@ import net.nitrado.hytale.plugins.performance_saver.viewradius.GcMonitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.Monitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.TpsMonitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.ViewRadiusResult;
+import com.hypixel.hytale.server.core.universe.world.storage.component.ChunkSavingSystems;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ScheduledFuture;
@@ -34,6 +36,7 @@ public class PerformanceSaverPlugin extends JavaPlugin {
     private Monitor tpsMonitor;
 
     private ChunkGarbageCollector chunkGarbageCollector;
+
     private TpsAdjuster tpsAdjuster;
 
 
@@ -94,12 +97,16 @@ public class PerformanceSaverPlugin extends JavaPlugin {
         var gcViewRadiusResult = ViewRadiusResult.INCREASE;
         var tpsViewRadiusResult = ViewRadiusResult.INCREASE;
 
+        long now = System.nanoTime();
+
+        var lastAdjustmentDeltaNanos = now - lastAdjustmentNanos;
+
         if (this.config.getViewRadiusConfig().getGcMonitorConfig().isEnabled()) {
-            gcViewRadiusResult = this.gcMonitor.getViewRadiusChange(this.lastAdjustmentNanos);
+            gcViewRadiusResult = this.gcMonitor.getViewRadiusChange(lastAdjustmentDeltaNanos);
         }
 
         if  (this.config.getViewRadiusConfig().getTpsMonitorConfig().isEnabled()) {
-            tpsViewRadiusResult = this.tpsMonitor.getViewRadiusChange(this.lastAdjustmentNanos);
+            tpsViewRadiusResult = this.tpsMonitor.getViewRadiusChange(lastAdjustmentDeltaNanos);
         }
 
         if  (gcViewRadiusResult == ViewRadiusResult.DECREASE) {
@@ -110,7 +117,7 @@ public class PerformanceSaverPlugin extends JavaPlugin {
                 if (currentViewRadius == this.initialViewRadius) {
                     Universe.get().sendMessage(Message.raw("Memory pressure can be caused by fast exploration and similar activities. View radius will recover over time if memory usage allows."));
                 }
-                getLogger().atSevere().log("Memory critical. Reducing view radius to " + newViewRadius + " chunks.");
+                getLogger().atWarning().log("Memory critical. Reducing view radius to " + newViewRadius + " chunks.");
             }
         }
 
@@ -122,16 +129,21 @@ public class PerformanceSaverPlugin extends JavaPlugin {
                 if (currentViewRadius == this.initialViewRadius) {
                     Universe.get().sendMessage(Message.raw("Low TPS can be caused by chunk generation and large amounts of active NPCs. View radius will recover when load decreases."));
                 }
-                getLogger().atSevere().log("TPS low. Reducing view radius to " + newViewRadius  + " chunks.");
+                getLogger().atWarning().log("TPS low. Reducing view radius to " + newViewRadius  + " chunks.");
             }
         }
 
-        if (gcViewRadiusResult  == ViewRadiusResult.INCREASE && tpsViewRadiusResult  == ViewRadiusResult.INCREASE) {
+        if (lastAdjustmentDeltaNanos > this.config.getViewRadiusConfig().getRecoveryWaitTime().toNanos()
+            && gcViewRadiusResult  == ViewRadiusResult.INCREASE
+                && tpsViewRadiusResult  == ViewRadiusResult.INCREASE) {
             this.increaseViewRadius(currentViewRadius);
         }
     }
 
     protected void checkChunks() {
+
+        Universe.get().getDefaultWorld().getWorldConfig().setSaveNewChunks(true);
+
         var hasRun = this.chunkGarbageCollector.execute();
 
         if (hasRun) {
@@ -189,10 +201,16 @@ public class PerformanceSaverPlugin extends JavaPlugin {
             getLogger().atSevere().log("failed stopping monitors: %s", e.getMessage());
         }
 
-        this.viewRadiusTask.cancel(false);
-        this.chunkTask.cancel(false);
-        this.tpsTask.cancel(false);
+        if (viewRadiusTask != null) {
+            this.viewRadiusTask.cancel(false);
+        }
+
+        if (chunkTask != null) {
+            this.chunkTask.cancel(false);
+        }
+
+        if (tpsTask != null) {
+            this.tpsTask.cancel(false);
+        }
     }
-
-
 }
