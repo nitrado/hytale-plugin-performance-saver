@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ci:
+    uses: nitrado/hytale-plugin-workflows/.github/workflows/plugin-ci.yml@main
+    secrets: inherit
+    # Optional: override defaults
+    # with:
+    #   java-version: "25"
+
