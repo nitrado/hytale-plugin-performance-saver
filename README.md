@@ -38,7 +38,7 @@ and explicitly triggers an additional garbage collection if it is highly likely 
 ## Usage
 
 ### Installation
-Place the plugin JAR into your server's `plugins/` folder.
+Place the plugin JAR into your server's `mods/` folder.
 
 ### Configuration
 The plugin is configured via a JSON configuration file. Below are all available configuration sections and their options.
