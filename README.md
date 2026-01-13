@@ -101,6 +101,56 @@ Triggers JVM garbage collection when chunk unloading indicates memory can be fre
 | `GarbageCollectionDelaySeconds` | integer | `300`   | Minimum time between triggered GC runs                 |
 | `InitialDelaySeconds`           | integer | `5`     | Delay before chunk GC monitoring starts                |
 | `CheckIntervalSeconds`          | integer | `5`     | How often to check chunk counts                        |
+| `InitialDelaySeconds`           | integer | `5`     | Delay before chunk GC monitoring starts                |
+| `CheckIntervalSeconds`          | integer | `5`     | How often to check chunk counts                        |
+
+### Full Configuration Example
+
+Below is a complete `config.json` file with all default values:
+
+```json
+{
+  "Tps": {
+    "Enabled": true,
+    "TpsLimit": 20,
+    "TpsLimitEmpty": 5,
+    "OnlyWorlds": [],
+    "InitialDelaySeconds": 30,
+    "CheckIntervalSeconds": 5,
+    "EmptyLimitDelaySeconds": 300
+  },
+  "ViewRadius": {
+    "Enabled": true,
+    "MinViewRadius": 2,
+    "DecreaseFactor": 0.75,
+    "IncreaseValue": 1,
+    "InitialDelaySeconds": 30,
+    "CheckIntervalSeconds": 5,
+    "RecoveryWaitTimeSeconds": 60,
+    "GcMonitor": {
+      "Enabled": true,
+      "HeapThresholdRatio": 0.85,
+      "TriggerSequenceLength": 3,
+      "WindowSeconds": 60
+    },
+    "TpsMonitor": {
+      "Enabled": true,
+      "TpsWaterMarkHigh": 0.75,
+      "TpsWaterMarkLow": 0.6,
+      "OnlyWorlds": [],
+      "AdjustmentDelaySeconds": 20
+    }
+  },
+  "ChunkGarbageCollection": {
+    "Enabled": true,
+    "MinChunkCount": 128,
+    "ChunkDropRatioThreshold": 0.8,
+    "GarbageCollectionDelaySeconds": 300,
+    "InitialDelaySeconds": 5,
+    "CheckIntervalSeconds": 5
+  }
+}
+```
 
 ## Contributing
 Community contributions are welcome and encouraged.
