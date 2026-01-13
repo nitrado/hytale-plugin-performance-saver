@@ -41,7 +41,10 @@ and explicitly triggers an additional garbage collection if it is highly likely 
 Place the plugin JAR into your server's `mods/` folder.
 
 ### Configuration
-The plugin is configured via a JSON configuration file. Below are all available configuration sections and their options.
+The plugin is configured via a JSON configuration file at `mods/Nitrado_PerformanceSaver/config.json`. You will need to
+create the file and directory.
+
+Below are all available configuration sections and their options.
 
 #### TPS Adjuster (`Tps`)
 Controls the server's TPS limiting behavior.
@@ -106,7 +109,7 @@ Triggers JVM garbage collection when chunk unloading indicates memory can be fre
 
 ### Full Configuration Example
 
-Below is a complete `config.json` file with all default values:
+Below is a complete `mods/Nitrado_PerformanceSaver/config.json` file with all default values:
 
 ```json
 {
