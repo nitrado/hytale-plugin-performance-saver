@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   ci:
-    uses: nitrado/hytale-plugin-workflows/.github/workflows/plugin-ci.yml@main
+    uses: nitrado/hytale-plugin-workflows/.github/workflows/plugin-ci.yml@v1
     secrets: inherit
     # Optional: override defaults
     # with:
