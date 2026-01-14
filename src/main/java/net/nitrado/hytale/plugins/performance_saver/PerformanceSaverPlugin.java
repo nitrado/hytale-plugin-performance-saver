@@ -2,8 +2,10 @@ package net.nitrado.hytale.plugins.performance_saver;
 
 import com.hypixel.hytale.server.core.HytaleServer;
 import com.hypixel.hytale.server.core.Message;
+import com.hypixel.hytale.server.core.permissions.PermissionsModule;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
+import com.hypixel.hytale.server.core.universe.PlayerRef;
 import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.universe.world.storage.component.ChunkSavingSystems;
 import com.hypixel.hytale.server.core.util.Config;
@@ -104,37 +106,45 @@ public class PerformanceSaverPlugin extends JavaPlugin {
             gcViewRadiusResult = this.gcMonitor.getViewRadiusChange(lastAdjustmentDeltaNanos);
         }
 
-        if  (this.config.getViewRadiusConfig().getTpsMonitorConfig().isEnabled()) {
+        if (this.config.getViewRadiusConfig().getTpsMonitorConfig().isEnabled()) {
             tpsViewRadiusResult = this.tpsMonitor.getViewRadiusChange(lastAdjustmentDeltaNanos);
         }
 
-        if  (gcViewRadiusResult == ViewRadiusResult.DECREASE) {
+        if (gcViewRadiusResult == ViewRadiusResult.DECREASE) {
             var newViewRadius = this.reduceViewRadius(currentViewRadius);
 
             if (newViewRadius != currentViewRadius) {
-                Universe.get().sendMessage(Message.raw("Memory critical. Reducing view radius to " + newViewRadius + " chunks."));
+                Universe.get().getPlayers().stream()
+                        .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                        .forEach(playerRef -> playerRef.sendMessage(Message.raw("Memory critical. Reducing view radius to " + newViewRadius + " chunks.")));
                 if (currentViewRadius == this.initialViewRadius) {
-                    Universe.get().sendMessage(Message.raw("Memory pressure can be caused by fast exploration and similar activities. View radius will recover over time if memory usage allows."));
+                    Universe.get().getPlayers().stream()
+                            .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                            .forEach(playerRef -> playerRef.sendMessage(Message.raw("Memory pressure can be caused by fast exploration and similar activities. View radius will recover over time if memory usage allows.")));
                 }
                 getLogger().atWarning().log("Memory critical. Reducing view radius to " + newViewRadius + " chunks.");
             }
         }
 
-        if  (tpsViewRadiusResult == ViewRadiusResult.DECREASE) {
+        if (tpsViewRadiusResult == ViewRadiusResult.DECREASE) {
             var newViewRadius = this.reduceViewRadius(currentViewRadius);
 
             if (newViewRadius != currentViewRadius) {
-                Universe.get().sendMessage(Message.raw("TPS low. Reducing view radius to " + newViewRadius + " chunks."));
+                Universe.get().getPlayers().stream()
+                        .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                        .forEach(playerRef -> playerRef.sendMessage(Message.raw("TPS low. Reducing view radius to " + newViewRadius + " chunks.")));
                 if (currentViewRadius == this.initialViewRadius) {
-                    Universe.get().sendMessage(Message.raw("Low TPS can be caused by chunk generation and large amounts of active NPCs. View radius will recover when load decreases."));
+                    Universe.get().getPlayers().stream()
+                            .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                            .forEach(playerRef -> playerRef.sendMessage(Message.raw("Low TPS can be caused by chunk generation and large amounts of active NPCs. View radius will recover when load decreases.")));
                 }
-                getLogger().atWarning().log("TPS low. Reducing view radius to " + newViewRadius  + " chunks.");
+                getLogger().atWarning().log("TPS low. Reducing view radius to " + newViewRadius + " chunks.");
             }
         }
 
         if (lastAdjustmentDeltaNanos > this.config.getViewRadiusConfig().getRecoveryWaitTime().toNanos()
-            && gcViewRadiusResult  == ViewRadiusResult.INCREASE
-                && tpsViewRadiusResult  == ViewRadiusResult.INCREASE) {
+                && gcViewRadiusResult == ViewRadiusResult.INCREASE
+                && tpsViewRadiusResult == ViewRadiusResult.INCREASE) {
             this.increaseViewRadius(currentViewRadius);
         }
     }
@@ -177,7 +187,9 @@ public class PerformanceSaverPlugin extends JavaPlugin {
         var newViewRadius = Math.min(currentViewRadius + this.config.getViewRadiusConfig().getIncreaseValue(), this.initialViewRadius);
 
         if (newViewRadius > currentViewRadius) {
-            Universe.get().sendMessage(Message.raw("Increasing view radius back to " + newViewRadius + " chunks."));
+            Universe.get().getPlayers().stream()
+                    .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                    .forEach(playerRef -> playerRef.sendMessage(Message.raw("Increasing view radius back to " + newViewRadius + " chunks.")));
             getLogger().atInfo().log("Increasing view radius back to " + newViewRadius + " chunks.");
             this.lastAdjustmentNanos = System.nanoTime();
             HytaleServer.get().getConfig().setMaxViewRadius(newViewRadius);
