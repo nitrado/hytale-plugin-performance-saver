@@ -115,11 +115,11 @@ public class PerformanceSaverPlugin extends JavaPlugin {
 
             if (newViewRadius != currentViewRadius) {
                 Universe.get().getPlayers().stream()
-                        .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                        .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY_DECREASE))
                         .forEach(playerRef -> playerRef.sendMessage(Message.raw("Memory critical. Reducing view radius to " + newViewRadius + " chunks.")));
                 if (currentViewRadius == this.initialViewRadius) {
                     Universe.get().getPlayers().stream()
-                            .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                            .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY_DECREASE))
                             .forEach(playerRef -> playerRef.sendMessage(Message.raw("Memory pressure can be caused by fast exploration and similar activities. View radius will recover over time if memory usage allows.")));
                 }
                 getLogger().atWarning().log("Memory critical. Reducing view radius to " + newViewRadius + " chunks.");
@@ -131,11 +131,11 @@ public class PerformanceSaverPlugin extends JavaPlugin {
 
             if (newViewRadius != currentViewRadius) {
                 Universe.get().getPlayers().stream()
-                        .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                        .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY_DECREASE))
                         .forEach(playerRef -> playerRef.sendMessage(Message.raw("TPS low. Reducing view radius to " + newViewRadius + " chunks.")));
                 if (currentViewRadius == this.initialViewRadius) {
                     Universe.get().getPlayers().stream()
-                            .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                            .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY_DECREASE))
                             .forEach(playerRef -> playerRef.sendMessage(Message.raw("Low TPS can be caused by chunk generation and large amounts of active NPCs. View radius will recover when load decreases.")));
                 }
                 getLogger().atWarning().log("TPS low. Reducing view radius to " + newViewRadius + " chunks.");
@@ -188,7 +188,7 @@ public class PerformanceSaverPlugin extends JavaPlugin {
 
         if (newViewRadius > currentViewRadius) {
             Universe.get().getPlayers().stream()
-                    .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY))
+                    .filter(playerRef -> PermissionsModule.get().hasPermission(playerRef.getUuid(), Permissions.NOTIFY_INCREASE))
                     .forEach(playerRef -> playerRef.sendMessage(Message.raw("Increasing view radius back to " + newViewRadius + " chunks.")));
             getLogger().atInfo().log("Increasing view radius back to " + newViewRadius + " chunks.");
             this.lastAdjustmentNanos = System.nanoTime();
