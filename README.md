@@ -62,15 +62,16 @@ Controls the server's TPS limiting behavior.
 #### View Radius (`ViewRadius`)
 Controls dynamic view radius adjustment based on resource pressure.
 
-| Option                    | Type    | Default | Description                                            |
-|---------------------------|---------|---------|--------------------------------------------------------|
-| `Enabled`                 | boolean | `true`  | Enable/disable dynamic view radius adjustment          |
-| `MinViewRadius`           | integer | `2`     | Minimum allowed view radius                            |
-| `DecreaseFactor`          | double  | `0.75`  | Factor to multiply current view radius when decreasing |
-| `IncreaseValue`           | integer | `1`     | Amount to increase view radius when recovering         |
-| `InitialDelaySeconds`     | integer | `30`    | Delay before view radius adjustment starts             |
-| `CheckIntervalSeconds`    | integer | `5`     | How often to check resource pressure                   |
-| `RecoveryWaitTimeSeconds` | integer | `60`    | Time to wait before attempting to increase view radius |
+| Option                    | Type    | Default | Description                                                                                                                                                             |
+|---------------------------|---------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Enabled`                 | boolean | `true`  | Enable/disable dynamic view radius adjustment                                                                                                                           |
+| `MinViewRadius`           | integer | `2`     | Minimum allowed view radius                                                                                                                                             |
+| `DecreaseFactor`          | double  | `0.75`  | Factor to multiply current view radius when decreasing                                                                                                                  |
+| `IncreaseValue`           | integer | `1`     | Amount to increase view radius when recovering                                                                                                                          |
+| `InitialDelaySeconds`     | integer | `30`    | Delay before view radius adjustment starts                                                                                                                              |
+| `CheckIntervalSeconds`    | integer | `5`     | How often to check resource pressure                                                                                                                                    |
+| `RecoveryWaitTimeSeconds` | integer | `60`    | Time to wait before attempting to increase view radius                                                                                                                  |
+| `RequireNotifyPermission` | boolean | `false` | Only send view distance update notifications to players with the permissions `nitrado.performance_saver.notify.increase` or `nitrado.performance_saver.notify.decrease` |
 
 ##### GC Monitor (`ViewRadius.GcMonitor`)
 Monitors JVM garbage collection to detect memory pressure.

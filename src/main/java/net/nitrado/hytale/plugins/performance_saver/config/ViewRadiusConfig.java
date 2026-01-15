@@ -44,6 +44,11 @@ public class ViewRadiusConfig {
                     config -> config.recoveryWaitTime
             ).add()
             .append(
+                    new KeyedCodec<>("RequireNotifyPermission", Codec.BOOLEAN),
+                    (config, value) -> config.requireNotifyPermission = value,
+                    config -> config.requireNotifyPermission
+            ).add()
+            .append(
                     new KeyedCodec<>("GcMonitor", GcMonitorConfig.CODEC),
                     (config, value) -> config.gcMonitorConfig = value,
                     config -> config.gcMonitorConfig
@@ -69,6 +74,7 @@ public class ViewRadiusConfig {
     private Duration initialDelay = Duration.ofSeconds(30);
     private Duration checkInterval = Duration.ofSeconds(5);
     private Duration recoveryWaitTime = Duration.ofSeconds(60);
+    private boolean requireNotifyPermission = false;
     private GcMonitorConfig gcMonitorConfig = new GcMonitorConfig();
     private TpsMonitorConfig tpsMonitorConfig = new TpsMonitorConfig();
 
@@ -98,6 +104,10 @@ public class ViewRadiusConfig {
 
     public Duration getRecoveryWaitTime() {
         return recoveryWaitTime.compareTo(Duration.ZERO) <= 0 ? MIN_DURATION : recoveryWaitTime;
+    }
+
+    public boolean isRequireNotifyPermission() {
+        return requireNotifyPermission;
     }
 
     public GcMonitorConfig getGcMonitorConfig() {
