@@ -10,6 +10,7 @@ import com.hypixel.hytale.server.core.universe.Universe;
 import com.hypixel.hytale.server.core.util.Config;
 import net.nitrado.hytale.plugins.performance_saver.chunks.ChunkGarbageCollector;
 import net.nitrado.hytale.plugins.performance_saver.config.PerformanceSaverPluginConfig;
+import net.nitrado.hytale.plugins.performance_saver.config.RestoreConfig;
 import net.nitrado.hytale.plugins.performance_saver.tps.TpsAdjuster;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.GcMonitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.Monitor;
@@ -17,12 +18,17 @@ import net.nitrado.hytale.plugins.performance_saver.viewradius.TpsMonitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.ViewRadiusResult;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public class PerformanceSaverPlugin extends JavaPlugin {
 
     private final Config<PerformanceSaverPluginConfig> _config = withConfig(PerformanceSaverPluginConfig.CODEC);
+
+    // _restoreConfig saves the server's initial max view radius to disk to allow a restore after a hard server crash
+    private final Config<RestoreConfig> _restoreConfig = withConfig("restore", RestoreConfig.CODEC);
     private PerformanceSaverPluginConfig config;
 
     private ScheduledFuture<?> viewRadiusTask;
@@ -46,18 +52,18 @@ public class PerformanceSaverPlugin extends JavaPlugin {
     @Override
     protected void setup() {
         this.config = this._config.get();
+        this.initialViewRadius = this._restoreConfig.get().getInitialViewRadius();
 
         this.gcMonitor = new GcMonitor(getLogger().getSubLogger("GcMonitor"), this.config.getViewRadiusConfig().getGcMonitorConfig());
         this.tpsMonitor = new TpsMonitor(getLogger().getSubLogger("TpsMonitor"), this.config.getViewRadiusConfig().getTpsMonitorConfig());
         this.chunkGarbageCollector = new ChunkGarbageCollector(getLogger().getSubLogger("ChunkGarbageCollector"), this.config.getChunkGarbageCollectorConfig());
         this.tpsAdjuster = new TpsAdjuster(getLogger().getSubLogger("TpsAdjuster"), this.config.getTpsAdjusterConfig());
         this._config.save();
+        this._restoreConfig.save();
     }
 
     @Override
     protected void start() {
-        this.initialViewRadius = HytaleServer.get().getConfig().getMaxViewRadius();
-
         getLogger().atInfo().log("Initial view radius is %d", this.initialViewRadius);
         try {
 
@@ -222,6 +228,13 @@ public class PerformanceSaverPlugin extends JavaPlugin {
     protected void shutdown() {
         getLogger().atInfo().log("Restoring view radius to %d", this.initialViewRadius);
         HytaleServer.get().getConfig().setMaxViewRadius(this.initialViewRadius);
+
+        try {
+            // Remove restore.json again to allow manual changes to the view radius in the server config
+            Files.deleteIfExists(getDataDirectory().resolve("restore.json"));
+        } catch (IOException e) {
+            getLogger().atWarning().withCause(e).log("failed to delete restore.json");
+        }
 
         try {
             this.gcMonitor.stop();
