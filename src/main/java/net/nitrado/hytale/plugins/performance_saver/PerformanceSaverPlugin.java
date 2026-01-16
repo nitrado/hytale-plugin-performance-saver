@@ -242,5 +242,7 @@ public class PerformanceSaverPlugin extends JavaPlugin {
         if (tpsTask != null) {
             this.tpsTask.cancel(false);
         }
+
+        this.tpsAdjuster.restore();
     }
 }
