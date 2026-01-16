@@ -5,7 +5,6 @@ import com.hypixel.hytale.server.core.Message;
 import com.hypixel.hytale.server.core.plugin.JavaPlugin;
 import com.hypixel.hytale.server.core.plugin.JavaPluginInit;
 import com.hypixel.hytale.server.core.universe.Universe;
-import com.hypixel.hytale.server.core.universe.world.storage.component.ChunkSavingSystems;
 import com.hypixel.hytale.server.core.util.Config;
 import net.nitrado.hytale.plugins.performance_saver.chunks.ChunkGarbageCollector;
 import net.nitrado.hytale.plugins.performance_saver.config.PerformanceSaverPluginConfig;
@@ -14,7 +13,6 @@ import net.nitrado.hytale.plugins.performance_saver.viewradius.GcMonitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.Monitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.TpsMonitor;
 import net.nitrado.hytale.plugins.performance_saver.viewradius.ViewRadiusResult;
-import com.hypixel.hytale.server.core.universe.world.storage.component.ChunkSavingSystems;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.ScheduledFuture;
@@ -51,6 +49,7 @@ public class PerformanceSaverPlugin extends JavaPlugin {
         this.tpsMonitor = new TpsMonitor(getLogger().getSubLogger("TpsMonitor"), this.config.getViewRadiusConfig().getTpsMonitorConfig());
         this.chunkGarbageCollector = new ChunkGarbageCollector(getLogger().getSubLogger("ChunkGarbageCollector"), this.config.getChunkGarbageCollectorConfig());
         this.tpsAdjuster = new TpsAdjuster(getLogger().getSubLogger("TpsAdjuster"), this.config.getTpsAdjusterConfig());
+        this._config.save();
     }
 
     @Override
