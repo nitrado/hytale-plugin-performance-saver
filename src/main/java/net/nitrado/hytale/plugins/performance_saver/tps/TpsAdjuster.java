@@ -61,6 +61,10 @@ public class TpsAdjuster {
         return change;
     }
 
+    public boolean restore() {
+        return this.setTps(World.TPS);
+    }
+
 
     private int getPlayerCount() {
         // Universe.get().getPlayerCount() seems to be faulty
