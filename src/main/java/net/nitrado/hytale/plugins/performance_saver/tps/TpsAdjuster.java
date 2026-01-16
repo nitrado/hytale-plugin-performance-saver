@@ -12,7 +12,7 @@ public class TpsAdjuster {
     private HytaleLogger logger;
     private TpsAdjusterConfig config;
 
-    private long lastPlayerSeenAt = 0;
+    private long lastPlayerSeenAt;
 
     public TpsAdjuster(HytaleLogger logger, TpsAdjusterConfig config) {
         this.logger = logger;
@@ -22,8 +22,7 @@ public class TpsAdjuster {
     public boolean execute() {
         var now = System.nanoTime();
 
-        var playerCount = Universe.get().getPlayerCount();
-        if (playerCount > 0) {
+        if (getPlayerCount() > 0) {
             this.lastPlayerSeenAt = now;
         }
 
@@ -36,7 +35,7 @@ public class TpsAdjuster {
     }
 
     private boolean setTps(int tps) {
-        var onlyWorlds = this.config.getOnlyWorlds();
+        var onlyWorlds = new java.util.HashSet<>(this.config.getOnlyWorlds());
 
         if (onlyWorlds.contains(TpsAdjusterConfig.DEFAULT_WORLD)) {
             onlyWorlds.add(Universe.get().getDefaultWorld().getName());
@@ -60,5 +59,19 @@ public class TpsAdjuster {
         }
 
         return change;
+    }
+
+
+    private int getPlayerCount() {
+        // Universe.get().getPlayerCount() seems to be faulty
+        // See https://github.com/nitrado/hytale-plugin-performance-saver/issues/7
+        var universePlayerCount = Universe.get().getPlayerCount();
+
+        var worldSumPlayerCount = 0;
+        for (var worldEntry : Universe.get().getWorlds().entrySet()) {
+            worldSumPlayerCount += worldEntry.getValue().getPlayerCount();
+        }
+
+        return Math.max(universePlayerCount, worldSumPlayerCount);
     }
 }
