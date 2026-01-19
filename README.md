@@ -41,8 +41,8 @@ and explicitly triggers an additional garbage collection if it is highly likely 
 Place the plugin JAR into your server's `mods/` folder.
 
 ### Configuration
-The plugin is configured via a JSON configuration file at `mods/Nitrado_PerformanceSaver/config.json`. You will need to
-create the file and directory.
+The plugin is configured via a JSON configuration file at `mods/Nitrado_PerformanceSaver/config.json`. If the file does
+not exist, it will be automatically created with default values on first startup.
 
 Below are all available configuration sections and their options.
 
@@ -100,11 +100,9 @@ Triggers JVM garbage collection when chunk unloading indicates memory can be fre
 | Option                          | Type    | Default | Description                                            |
 |---------------------------------|---------|---------|--------------------------------------------------------|
 | `Enabled`                       | boolean | `true`  | Enable/disable chunk-based GC triggering               |
-| `MinChunkCount`                 | integer | `128`   | Minimum chunk count before GC triggering is considered |
 | `ChunkDropRatioThreshold`       | double  | `0.8`   | Chunk reduction ratio threshold to trigger GC          |
+| `MinChunkCount`                 | integer | `128`   | Minimum chunk count before GC triggering is considered |
 | `GarbageCollectionDelaySeconds` | integer | `300`   | Minimum time between triggered GC runs                 |
-| `InitialDelaySeconds`           | integer | `5`     | Delay before chunk GC monitoring starts                |
-| `CheckIntervalSeconds`          | integer | `5`     | How often to check chunk counts                        |
 | `InitialDelaySeconds`           | integer | `5`     | Delay before chunk GC monitoring starts                |
 | `CheckIntervalSeconds`          | integer | `5`     | How often to check chunk counts                        |
 
@@ -114,15 +112,6 @@ Below is a complete `mods/Nitrado_PerformanceSaver/config.json` file with all de
 
 ```json
 {
-  "Tps": {
-    "Enabled": true,
-    "TpsLimit": 20,
-    "TpsLimitEmpty": 5,
-    "OnlyWorlds": [],
-    "InitialDelaySeconds": 30,
-    "CheckIntervalSeconds": 5,
-    "EmptyLimitDelaySeconds": 300
-  },
   "ViewRadius": {
     "Enabled": true,
     "MinViewRadius": 2,
@@ -131,6 +120,7 @@ Below is a complete `mods/Nitrado_PerformanceSaver/config.json` file with all de
     "InitialDelaySeconds": 30,
     "CheckIntervalSeconds": 5,
     "RecoveryWaitTimeSeconds": 60,
+    "RequireNotifyPermission": false,
     "GcMonitor": {
       "Enabled": true,
       "HeapThresholdRatio": 0.85,
@@ -147,11 +137,20 @@ Below is a complete `mods/Nitrado_PerformanceSaver/config.json` file with all de
   },
   "ChunkGarbageCollection": {
     "Enabled": true,
-    "MinChunkCount": 128,
     "ChunkDropRatioThreshold": 0.8,
+    "MinChunkCount": 128,
     "GarbageCollectionDelaySeconds": 300,
     "InitialDelaySeconds": 5,
     "CheckIntervalSeconds": 5
+  },
+  "Tps": {
+    "Enabled": true,
+    "TpsLimit": 20,
+    "TpsLimitEmpty": 5,
+    "OnlyWorlds": [],
+    "InitialDelaySeconds": 30,
+    "CheckIntervalSeconds": 5,
+    "EmptyLimitDelaySeconds": 300
   }
 }
 ```
