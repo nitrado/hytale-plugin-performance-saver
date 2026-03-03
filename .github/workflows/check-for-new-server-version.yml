@@ -1,0 +1,13 @@
+name: Check for new Hytale Server version
+
+on:
+  schedule:
+    - cron: '0 */1 * * *'  # every 6 hours
+  workflow_dispatch:         # allow manual triggers
+
+jobs:
+  check:
+    uses: nitrado/hytale-plugin-workflows/.github/workflows/rebuild-on-new-server-version.yml@v2
+    secrets: inherit
+    with:
+      artifact-id: nitrado-performance-saver

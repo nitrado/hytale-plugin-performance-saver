@@ -3,6 +3,14 @@ name: Modtale Publish
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "The semver version string, e.g. 1.0.0+2026.02.19-1a311a592"
+        type: string
+        required: true
+      tag-name:
+        description: "The GitHub release tag name, e.g. v1.0.0"
+        type: string
+        required: true
       game-versions:
         description: "Hytale game versions (comma-separated)"
         type: string
@@ -13,8 +21,11 @@ permissions:
 
 jobs:
   modtale-publish:
-    uses: nitrado/hytale-plugin-workflows/.github/workflows/modtale-publish.yml@v1
+    uses: nitrado/hytale-plugin-workflows/.github/workflows/modtale-publish.yml@v2
     secrets: inherit
     with:
+      artifact-id: "nitrado-performance-saver"
+      version: ${{ inputs.version }}
+      tag-name: ${{ inputs.tag-name }}
       game-versions: ${{ inputs.game-versions }}
 

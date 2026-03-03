@@ -3,6 +3,18 @@ name: Maven Publish
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "The Maven version to publish, e.g. 1.1.1-rc1"
+        type: string
+        required: true
+      tag-name:
+        description: "The GitHub release tag name, e.g. v1.0.0"
+        type: string
+        required: true
+      hytale-server-version:
+        description: "The Hytale Server version to use for dependency resolution"
+        type: string
+        required: true
       java-version:
         description: "Java version for Maven publishing"
         type: string
@@ -13,8 +25,11 @@ permissions:
 
 jobs:
   maven-publish:
-    uses: nitrado/hytale-plugin-workflows/.github/workflows/maven-publish.yml@v1
+    uses: nitrado/hytale-plugin-workflows/.github/workflows/maven-publish.yml@v2
     secrets: inherit
     with:
+      version: ${{ inputs.version }}
+      tag-name: ${{ inputs.tag-name }}
+      hytale-server-version: ${{ inputs.hytale-server-version }}
       java-version: ${{ inputs.java-version }}
 

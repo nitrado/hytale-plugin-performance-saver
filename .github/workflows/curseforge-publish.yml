@@ -3,10 +3,18 @@ name: CurseForge Publish
 on:
   workflow_dispatch:
     inputs:
+      version:
+        description: "The semver version string, e.g. 1.0.0+2026.02.19-1a311a592"
+        type: string
+        required: true
+      tag-name:
+        description: "The GitHub release tag name, e.g. v1.0.0"
+        type: string
+        required: true
       game-endpoint:
         description: "The subdomain of curseforge.com"
         type: string
-        default: "authors"
+        default: "42"
       game-versions:
         description: "Game version IDs (comma-separated)"
         type: string
@@ -21,11 +29,13 @@ permissions:
 
 jobs:
   curseforge-publish:
-    uses: nitrado/hytale-plugin-workflows/.github/workflows/curseforge-publish.yml@v1
+    uses: nitrado/hytale-plugin-workflows/.github/workflows/curseforge-publish.yml@v2
     secrets: inherit
     with:
+      artifact-id: "nitrado-performance-saver"
+      version: ${{ inputs.version }}
+      tag-name: ${{ inputs.tag-name }}
       game-endpoint: ${{ inputs.game-endpoint }}
       game-versions: ${{ inputs.game-versions }}
       relations: ${{ inputs.relations }}
-      artifact-id: "nitrado-performance-saver"
 
