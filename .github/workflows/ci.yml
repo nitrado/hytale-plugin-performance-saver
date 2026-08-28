@@ -18,6 +18,8 @@ jobs:
   ci:
     uses: nitrado/hytale-plugin-workflows/.github/workflows/plugin-ci.yml@v2
     secrets: inherit
+    with:
+      server-version-range-symbol: "~"
     # Optional: override defaults
     # with:
     #   java-version: "25"
