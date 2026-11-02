@@ -30,7 +30,7 @@ public class TpsMonitorConfig {
                     config -> config.onlyWorlds
             ).add()
             .append(
-                    new KeyedCodec<>("AdjustmentDelaySeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("AdjustmentDelaySeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.adjustmentDelay = value,
                     config -> config.adjustmentDelay
             ).add()

@@ -31,17 +31,17 @@ public class TpsAdjusterConfig {
                     config -> config.onlyWorlds
             ).add()
             .append(
-                    new KeyedCodec<>("InitialDelaySeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("InitialDelaySeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.initialDelay = value,
                     config -> config.initialDelay
             ).add()
             .append(
-                    new KeyedCodec<>("CheckIntervalSeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("CheckIntervalSeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.checkInterval = value,
                     config -> config.checkInterval
             ).add()
             .append(
-                    new KeyedCodec<>("EmptyLimitDelaySeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("EmptyLimitDelaySeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.emptyLimitDelay = value,
                     config -> config.emptyLimitDelay
             ).add()
