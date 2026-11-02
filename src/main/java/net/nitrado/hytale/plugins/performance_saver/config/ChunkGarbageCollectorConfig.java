@@ -24,17 +24,17 @@ public class ChunkGarbageCollectorConfig {
                     config -> config.minChunkCount
             ).add()
             .append(
-                    new KeyedCodec<>("GarbageCollectionDelaySeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("GarbageCollectionDelaySeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.garbageCollectionDelay = value,
                     config -> config.garbageCollectionDelay
             ).add()
             .append(
-                    new KeyedCodec<>("InitialDelaySeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("InitialDelaySeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.initialDelay = value,
                     config -> config.initialDelay
             ).add()
             .append(
-                    new KeyedCodec<>("CheckIntervalSeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("CheckIntervalSeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.checkInterval = value,
                     config -> config.checkInterval
             ).add()

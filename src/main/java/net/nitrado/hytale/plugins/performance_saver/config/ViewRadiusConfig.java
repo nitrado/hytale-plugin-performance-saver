@@ -29,17 +29,17 @@ public class ViewRadiusConfig {
                     config -> config.increaseValue
             ).add()
             .append(
-                    new KeyedCodec<>("InitialDelaySeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("InitialDelaySeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.initialDelay = value,
                     config -> config.initialDelay
             ).add()
             .append(
-                    new KeyedCodec<>("CheckIntervalSeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("CheckIntervalSeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.checkInterval = value,
                     config -> config.checkInterval
             ).add()
             .append(
-                    new KeyedCodec<>("RecoveryWaitTimeSeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("RecoveryWaitTimeSeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.recoveryWaitTime = value,
                     config -> config.recoveryWaitTime
             ).add()

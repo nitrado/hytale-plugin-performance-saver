@@ -24,7 +24,7 @@ public class GcMonitorConfig {
                     config -> config.triggerSequenceLength
             ).add()
             .append(
-                    new KeyedCodec<>("WindowSeconds", Codec.DURATION_SECONDS),
+                    new KeyedCodec<>("WindowSeconds", Codecs.DURATION_SECONDS),
                     (config, value) -> config.window = value,
                     config -> config.window
             ).add()
